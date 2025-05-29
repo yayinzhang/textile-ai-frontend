@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SMIS LLM{% endblock %}</title>
+
+  <meta name="robots" content="index, follow">
+  <meta name="google-site-verification" content="X5v9TojsnrGEhmzB4bQDfjDVm_2ACl6F8Xk9LdAqJng" />
+
+  <!-- 建議加上網頁描述 -->
+  <meta name="description" content="專為華語使用者設計的泰文學習平台，提供單字解析、例句與文法說明。">
+
+  <!-- Facebook、LINE、社群分享時用的資訊 -->
+  <meta property="og:title" content="泰文學習平台 - 學泰文就上這裡">
+  <meta property="og:description" content="文章翻譯、單字庫、文法庫一站搞定。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://thai-learning-platform.onrender.com/">
+  <meta property="og:image" content="https://thai-learning-platform.onrender.com/static/og-image.png"> <!-- 若有 LOGO 圖可放這 -->
+
+  <!-- Twitter 卡片資訊（選用） -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="泰文學習平台 - 學泰文就上這裡">
+  <meta name="twitter:description" content="學單字、例句、文法一次搞定，適合初學者與進階學習者。">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-QJB4DL5LQQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-QJB4DL5LQQ');
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --top-area-height: 6rem; /* 根據實際 top 區域高度調整 */
+      --bottom-bar-height: 5rem; /* 根據實際 search bar 高度調整 */
+    }
+    body {
+      font-family: 'Noto Sans TC', 'Sarabun', sans-serif;
+      background-color: #f3f4f6; /* 淺灰背景 */
+      color: #374151; /* 灰黑字色 */
+      margin: 0;
+      min-height: 100vh;
+      /* display: flex;  移除，避免 .top-logo 和 .main-container 被誤解為 flex 左右排版 */
+    }
+    /* Fixed top logo */
+    .top-logo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 48px;
+      background-color: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 24px;
+      color: #374151;
+      user-select: none;
+      padding: 0 12px;
+      box-sizing: border-box;
+    }
+    .top-logo .hamburger {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      margin-right: 0;
+      transform: none;
+    }
+    .top-logo-inner {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      position: relative;
+      max-width: 600px;
+      justify-content: center;
+    }
+    .logo-text {
+      margin: 0 auto;
+    }
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 48px;
+      left: 0;
+      height: calc(100vh - 48px);
+      width: 240px;
+      background-color: #ffffff;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      padding-top: 48px;
+      box-sizing: border-box;
+      z-index: 1000;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    /* Hamburger menu */
+    .hamburger {
+      width: 32px;
+      height: 32px;
+      z-index: 1300;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      padding: 4px 0;
+      background: transparent;
+      border: none;
+      flex-shrink: 0;
+    }
+    .hamburger span {
+      display: block;
+      height: 3px;
+      background-color: #1f2937 !important; /* 深灰色橫條，使用 !important 確保不被覆蓋 */
+      border-radius: 2px;
+      transition: background-color 0.2s;
+    }
+    .hamburger:hover span {
+      background-color: #f97316 !important; /* 橘色 hover 效果，使用 !important */
+    }
+    /* Sidebar nav links */
+    .sidebar nav {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 0 24px;
+    }
+    .sidebar nav a {
+      color: #6b7280;
+      font-weight: 500;
+      font-size: 16px;
+      text-decoration: none;
+      padding: 8px 0;
+      border-left: 4px solid transparent;
+      transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    }
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      color: #f97316;
+      border-left-color: #f97316;
+      font-weight: 600;
+    }
+    /* Main container */
+    .main-container {
+      max-width: 1200px;
+      margin: 64px auto 0 auto; /* 上方留白，下方緊貼 */
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+      margin-top: 48px;
+      align-items: center;
+    }
+    .main-container.sidebar-open {
+      /* padding-left: 240px; */
+      /* padding-right: 240px; */
+      margin-left: 240px;
+      max-width: calc(100% - 240px);
+    }
+    /* Remove top-header flex justify-content */
+    .top-header {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    /* Hide menu */
+    .menu {
+      display: none;
+    }
+    /* Center block: title, subtitle, search */
+    .center-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+      align-self: center;
+      width: 100%;
+    }
+    .main-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #111827;
+      user-select: none;
+    }
+    .sub-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #6b7280;
+      user-select: none;
+    }
+    .search-container {
+      display: flex;
+      width: 100%;
+      max-width: 640px;
+      gap: 8px;
+      position: fixed;
+      bottom: 12px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      padding: 0 16px;
+      z-index: 1300;
+    }
+    @media (max-width: 767px) {
+      .search-container {
+        /* 手機版維持現有設定 */
+        position: fixed;
+        bottom: 12px;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        padding: 0 16px;
+        max-width: 600px;
+        z-index: 1300;
+      }
+    }
+    .search-input {
+      flex-grow: 1;
+      padding: 10px 16px;
+      font-size: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      outline-offset: 2px;
+      transition: border-color 0.2s ease-in-out;
+    }
+    .search-input:focus {
+      border-color: #f97316;
+      outline: none;
+      box-shadow: 0 0 0 3px rgb(249 115 22 / 0.3);
+    }
+    .search-button {
+      background-color: #f97316;
+      color: white;
+      font-weight: 600;
+      padding: 0 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+      border: none;
+      font-size: 16px;
+    }
+    .search-button:hover {
+      background-color: #ea580c;
+    }
+    /* Recommended questions cards grid */
+    .recommended-questions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+      gap: 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .question-card {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+      cursor: pointer;
+      transition: box-shadow 0.2s ease-in-out;
+      font-size: 16px;
+      color: #374151;
+      font-weight: 500;
+      user-select: none;
+    }
+    .question-card:hover {
+      box-shadow: 0 4px 12px rgb(249 115 22 / 0.15);
+      background-color: #fff7ed;
+      color: #f97316;
+    }
+
+    /* 桌機版卡片排版（寬度與置中） */
+    @media (min-width: 768px) {
+      /* 針對包覆卡片的父層（.card-container 或 .recommended-questions）做水平置中與間距設定 */
+      .recommended-questions,
+      .card-container {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: nowrap;
+      }
+      .question-card {
+        width: 30%;
+        min-width: 250px;
+      }
+    }
+    /* Responsive: show hamburger on small screens and hide sidebar by default */
+    @media (min-width: 768px) {
+      .sidebar {
+        /* Removed transform override */
+      }
+      .hamburger {
+        /* Always visible, no change */
+      }
+      .main-container {
+        /* Removed margin-left override */
+      }
+    }
+    @media (max-width: 767px) {
+      .sidebar {
+        width: 200px;
+        height: calc(100vh - 48px);
+        top: 48px;
+      }
+      .main-container {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 48px;
+      }
+      .recommended-questions {
+        padding-left: 16px;
+        padding-right: 16px;
+        gap: 24px;
+        grid-template-columns: 1fr;
+      }
+    }
+    .typing-dots span {
+      display: inline-block;
+      font-size: 24px;
+      animation: blink 1.4s infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.2; }
+      20% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-logo" aria-label="Brand Logo" onclick="window.location.href='/chat'" style="cursor: pointer;">
+    <button class="hamburger" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="top-logo-inner">
+      <a href="/" class="logo-text">Tnet</a>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar" role="navigation" aria-label="Sidebar navigation">
+    <nav>
+      <a href="#" class="active" aria-current="page">Home</a>
+      <a href="#">Query History</a>
+      <a href="#">Settings</a>
+    </nav>
+  </aside>
+
+  <main id="main-content" class="main-container" role="main">
+    <!-- Top header -->
+    <header class="top-header">
+    </header>
+
+    <!-- 新增 chat-container 外層，包住聊天區與搜尋欄 -->
+    <div class="chat-container flex flex-col h-[calc(100vh-160px)] w-full max-w-2xl mx-auto mt-8 px-4">
+      <!-- Center block -->
+      <section class="center-block" aria-labelledby="main-title">
+        <h1 id="main-title" class="main-title">SMIS LLM</h1>
+      </section>
+
+      <!-- Recommended questions cards -->
+      <div id="recommendation-section" class="flex flex-col items-center space-y-4">
+        <div class="flex flex-col md:flex-row justify-center gap-4">
+          <div class="question-card" tabindex="0">2024 年 Nike 的運動種類分布為何？</div>
+          <div class="question-card" tabindex="0">Under Armour 於 2022～2024 年推出的商品中，是否以訓練與健身類別為主？</div>
+          <div class="question-card" tabindex="0">Alo Yoga 於 2022～2024 年是否持續擴大瑜珈類產品開發？</div>
+        </div>
+      </div>
+
+      <!-- Chat Interface -->
+      <section id="chat-interface" class="flex flex-col gap-4 flex-1">
+        <div class="flex-1 overflow-y-auto">  
+          <div id="chat-history" class="flex flex-col overflow-y-auto px-4 py-4 space-y-4 min-h-[200px] max-h-[calc(100vh-160px)]"></div>
+            <!-- 聊天訊息會插入這裡 -->
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- 固定底部搜尋欄 -->
+  <div id="search-container" class="fixed bottom-0 left-0 right-0 py-4 shadow-md z-50">
+    <form id="chat-form" class="max-w-2xl mx-auto w-full px-4 flex" onsubmit="handleChatSubmit(event);">
+      <input type="text" id="chat-input" placeholder="輸入你的問題..." class="flex-1 border border-gray-300 rounded-l px-4 py-2 focus:outline-none" required />
+      <button type="submit" class="bg-orange-400 hover:bg-orange-500 text-white px-4 py-2 rounded-r">送出</button>
+    </form>
+  </div>
+
+  <script>
+    const hamburger = document.querySelector('.hamburger');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+
+    hamburger.addEventListener('click', () => {
+      const isOpen = sidebar.classList.toggle('open');
+      if(isOpen) {
+        hamburger.setAttribute('aria-expanded', 'true');
+        mainContent.classList.add('sidebar-open');
+      } else {
+        hamburger.setAttribute('aria-expanded', 'false');
+        mainContent.classList.remove('sidebar-open');
+      }
+    });
+
+    // Close sidebar when clicking outside on small screens
+    document.addEventListener('click', (e) => {
+      if(!sidebar.contains(e.target) && !hamburger.contains(e.target) && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        mainContent.classList.remove('sidebar-open');
+      }
+    });
+
+    let loadingBubble = null;
+
+    function showTypingAnimation() {
+      const container = document.getElementById('chat-history');
+      loadingBubble = document.createElement('div');
+      loadingBubble.className = 'self-start bg-gray-200 text-left rounded-lg px-4 py-2 max-w-[80%] flex items-center';
+      loadingBubble.innerHTML = '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>';
+      container.appendChild(loadingBubble);
+    }
+
+    function hideTypingAnimation() {
+      if (loadingBubble) {
+        loadingBubble.remove();
+        loadingBubble = null;
+      }
+    }
+
+    // 模擬回覆流程
+    async function handleChatSubmit() {
+      showTypingAnimation();
+      // 等待回覆
+      await new Promise(r => setTimeout(r, 500));
+      hideTypingAnimation();
+    }
+
+    // --- Chat interface JS ---
+    async function handleChatSubmit(event) {
+      event.preventDefault();
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      // 隱藏推薦問題區與標題
+      document.getElementById('recommendation-section').style.display = 'none';
+      document.getElementById('main-title')?.classList.add('hidden');
+      document.getElementById('sub-title')?.classList.add('hidden');
+
+      appendMessage('user', message);
+      showTypingAnimation();
+      input.value = '';
+
+      let replies = [];
+
+      if (message.includes('Nike')) {
+        replies = ['MOCK_ANALYSIS_1'];
+      } else if (message.includes('Under Armour')) {
+        replies = ['MOCK_ANALYSIS_UA_TEXT', 'MOCK_ANALYSIS_UA_CHART'];
+      } else if (message.includes('Alo Yoga')) {
+        replies = ['MOCK_ANALYSIS_ALO_TEXT', 'MOCK_ANALYSIS_ALO_CHART'];
+      } else if (message.includes('adidas')) {
+        replies = ['MOCK_ANALYSIS_ADIDAS_TEXT', 'MOCK_ANALYSIS_ADIDAS_CHART'];
+      } else {
+        replies = ['MOCK_ANALYSIS_DEFAULT'];
+      }
+
+      for (let i = 0; i < replies.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 700));
+        appendMessage('assistant', replies[i]);
+      }
+
+      hideTypingAnimation();
+    }
+
+    // --- 新版 appendMessage 及推薦問題卡片事件 ---
+    function appendMessage(role, text) {
+      const container = document.getElementById('chat-history');
+      const bubble = document.createElement('div');
+
+      if (role === 'user') {
+        bubble.className = 'self-end bg-orange-100 text-left rounded-lg px-4 py-2 max-w-[80%]';
+        bubble.innerText = text;
+        container.appendChild(bubble);
+      } else if (role === 'assistant' || role === 'system') {
+        bubble.className = 'self-start bg-gray-200 text-left rounded-lg px-4 py-2 max-w-[80%]';
+
+        switch(text) {
+          case 'MOCK_ANALYSIS_1':
+            {
+              const textBlock = document.createElement('div');
+              textBlock.innerText = '根據資料，2024 年 NIKE 的運動商品以 Lifestyle 類別為主，其次為 Training 與 Running。';
+              bubble.appendChild(textBlock);
+              container.appendChild(bubble);
+
+              const chartBubble = document.createElement('div');
+              chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
+              chartBubble.innerHTML = `
+                <div class="mb-2 font-semibold">分析：</div>
+                <div class="text-sm mb-2">2024 年 Nike 商品總數為 20,578 件。依照運動種類的商品數量佔比，Lifestyle（生活休閒）佔最大比例，為 31.74%（6,532 件），顯示品牌在休閒風格產品上投入較多。其次為 Baseball（棒球）佔 17.69%（3,641 件），以及其他類別的商品份額。Football/Soccer（足球）佔 14.67%（3,019 件），反映足球相關商品為重要開發重點。Training & Gym（訓練與健身）佔 9.18%（1,889 件），顯示品牌對於運動訓練產品亦有較高比重。籃球（Basketball）佔 6.51%（1,340 件），跑步（Running）佔 4.33%（892 件），分別為其他主要運動類別。其餘類別如高爾夫、登山、游泳等所佔比例較小，皆未超過 3%。整體來看，Nike 2024 年在休閒及球類運動類別的商品數量較為集中，反映品牌在這些運動領域的開發策略。</div>
+                <img src="/static/images/chart_sample.png" alt="示意圖" class="rounded border border-gray-300" />
+              `;
+              container.appendChild(chartBubble);
+              break;
+            }
+          case 'MOCK_ANALYSIS_UA_TEXT':
+            {
+              const textBlock = document.createElement('div');
+              textBlock.innerText = 'Under Armour 於 2022～2024 年推出的商品中，訓練與健身類別佔比最高，反映品牌重點在運動功能性產品。';
+              bubble.appendChild(textBlock);
+              container.appendChild(bubble);
+              break;
+            }
+          case 'MOCK_ANALYSIS_UA_CHART':
+            {
+              const chartBubble = document.createElement('div');
+              chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
+              chartBubble.innerHTML = `
+                <div class="mb-2 font-semibold">分析：</div>
+                <div class="text-sm mb-2">以下圖表展示 Under Armour 各類別商品數量佔比，訓練與健身類別明顯佔多數。</div>
+                <img src="/static/images/chart_sample.png" alt="Under Armour 商品數量分析" class="rounded border border-gray-300" />
+              `;
+              container.appendChild(chartBubble);
+              break;
+            }
+          case 'MOCK_ANALYSIS_ALO_TEXT':
+            {
+              const textBlock = document.createElement('div');
+              textBlock.innerText = 'Alo Yoga 於 2022～2024 年持續擴大瑜珈類產品開發，商品數量逐年增加，顯示品牌聚焦瑜珈市場。';
+              bubble.appendChild(textBlock);
+              container.appendChild(bubble);
+              break;
+            }
+          case 'MOCK_ANALYSIS_ALO_CHART':
+            {
+              const chartBubble1 = document.createElement('div');
+              chartBubble1.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
+              chartBubble1.innerHTML = `
+                <div class="mb-2 font-semibold">分析：</div>
+                <div class="text-sm mb-2">圖示反映 Alo Yoga 2022 至 2024 年間瑜珈類商品數量持續成長。</div>
+                <img src="/static/images/chart_sample.png" alt="Alo Yoga 趨勢圖" class="rounded border border-gray-300" />
+              `;
+              container.appendChild(chartBubble1);
+
+              const chartBubble2 = document.createElement('div');
+              chartBubble2.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
+              chartBubble2.innerHTML = `
+                <div class="mb-2 font-semibold">附加分析：</div>
+                <div class="text-sm mb-2">另一張示意圖顯示瑜珈產品細分類別的比例分佈。</div>
+                <img src="/static/images/chart_sample.png" alt="Alo Yoga 細分類別" class="rounded border border-gray-300" />
+              `;
+              container.appendChild(chartBubble2);
+              break;
+            }
+          case 'MOCK_ANALYSIS_ADIDAS_TEXT':
+            {
+              const textBlock = document.createElement('div');
+              textBlock.innerText = 'adidas 2023 年商品以足球與跑步類別為主，顯示品牌聚焦這兩個運動市場。';
+              bubble.appendChild(textBlock);
+              container.appendChild(bubble);
+              break;
+            }
+          case 'MOCK_ANALYSIS_ADIDAS_CHART':
+            {
+              const chartBubble = document.createElement('div');
+              chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
+              chartBubble.innerHTML = `
+                <div class="mb-2 font-semibold">分析：</div>
+                <div class="text-sm mb-2">下圖顯示 adidas 不同運動類別的商品數量分佈。</div>
+                <img src="/static/images/chart_sample.png" alt="adidas 商品數量分佈" class="rounded border border-gray-300" />
+                `;
+              container.appendChild(chartBubble);
+              break;
+            }
+          case 'MOCK_ANALYSIS_DEFAULT':
+            {
+              const textBlock = document.createElement('div');
+              textBlock.innerText = '這是範例的回覆，說明系統目前沒有找到符合的資料，以下為示意圖表。';
+              bubble.appendChild(textBlock);
+              container.appendChild(bubble);
+
+              const chartBubble = document.createElement('div');
+              chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
+              chartBubble.innerHTML = `
+                <div class="mb-2 font-semibold">範例圖表分析</div>
+                <div class="text-sm mb-2">示意圖顯示資料分布情況。</div>
+                <img src="/static/images/chart_sample.png" alt="範例圖表" class="rounded border border-gray-300" />
+              `;
+              container.appendChild(chartBubble);
+              break;
+            }
+          default:
+            {
+              bubble.innerText = text;
+              container.appendChild(bubble);
+              break;
+            }
+        }
+      }
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // 推薦問題卡片點擊事件
+    document.querySelectorAll('.question-card').forEach(card => {
+      card.addEventListener('click', async () => {
+        const userInput = card.textContent.trim();
+        appendMessage('user', userInput);
+        document.getElementById('recommendation-section').style.display = 'none';
+        document.getElementById('main-title')?.classList.add('hidden');
+        document.getElementById('sub-title')?.classList.add('hidden');
+        showTypingAnimation();
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        if (userInput.includes('Nike')) {
+          appendMessage('assistant', 'MOCK_ANALYSIS_1');
+        } else if (userInput.includes('Under Armour')) {
+          appendMessage('assistant', 'MOCK_ANALYSIS_UA_TEXT');
+          appendMessage('assistant', 'MOCK_ANALYSIS_UA_CHART');
+        } else if (userInput.includes('Alo Yoga')) {
+          appendMessage('assistant', 'MOCK_ANALYSIS_ALO_TEXT');
+          appendMessage('assistant', 'MOCK_ANALYSIS_ALO_CHART');
+        } else if (userInput.includes('adidas')) {
+          appendMessage('assistant', 'MOCK_ANALYSIS_ADIDAS_TEXT');
+          appendMessage('assistant', 'MOCK_ANALYSIS_ADIDAS_CHART');
+        } else {
+          appendMessage('assistant', 'MOCK_ANALYSIS_DEFAULT');
+        }
+
+        hideTypingAnimation();
+      });
+    });
+  </script>
+</body>
+</html>
