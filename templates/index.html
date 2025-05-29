@@ -96,11 +96,13 @@
       border-right: 1px solid #e5e7eb;
       display: flex;
       flex-direction: column;
+      /* 移除 justify-content: space-between; 使內容緊密堆疊 */
       padding-top: 48px;
       box-sizing: border-box;
       z-index: 1000;
       transform: translateX(-100%);
       transition: transform 0.3s ease-in-out;
+      overflow-y: auto;
     }
     .sidebar.open {
       transform: translateX(0);
@@ -130,45 +132,23 @@
       background-color: #f97316 !important; /* 橘色 hover 效果，使用 !important */
     }
     /* Sidebar nav links */
-    .sidebar nav {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      padding: 0 24px;
-    }
-    .sidebar nav a {
-      color: #6b7280;
-      font-weight: 500;
-      font-size: 16px;
-      text-decoration: none;
-      padding: 8px 0;
-      border-left: 4px solid transparent;
-      transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-    }
-    .sidebar nav a:hover,
-    .sidebar nav a.active {
-      color: #f97316;
-      border-left-color: #f97316;
-      font-weight: 600;
-    }
+    /* 移除 .sidebar nav 相關樣式 */
     /* Main container */
     .main-container {
       max-width: 1200px;
-      margin: 64px auto 0 auto; /* 上方留白，下方緊貼 */
+      width: 100%;
+      margin: 64px auto 0 auto; /* 上邊距64px，左右自動置中 */
+      transition: width 0.3s ease, margin-left 0.3s ease;
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       gap: 32px;
-      width: 100%;
-      box-sizing: border-box;
-      transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
-      margin-top: 48px;
       align-items: center;
     }
     .main-container.sidebar-open {
-      /* padding-left: 240px; */
-      /* padding-right: 240px; */
-      margin-left: 240px;
-      max-width: calc(100% - 240px);
+      width: calc(100% - 240px); /* 扣除側邊欄寬度 */
+      margin-left: auto;
+      margin-right: auto;
     }
     /* Remove top-header flex justify-content */
     .top-header {
@@ -264,6 +244,11 @@
       max-width: 960px;
       margin: 0 auto;
     }
+
+    /* 調整推薦問題區塊與搜尋欄的間距，讓卡片緊貼搜尋欄 */
+    #recommendation-section {
+      margin-bottom: 0 !important;
+    }
     .question-card {
       background-color: #f9fafb;
       border-radius: 8px;
@@ -309,6 +294,14 @@
         /* Removed margin-left override */
       }
     }
+
+    #history-list-container {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 0.5rem;
+      margin-top: 0;
+    }
+
     @media (max-width: 767px) {
       .sidebar {
         width: 200px;
@@ -346,6 +339,35 @@
       20% { opacity: 1; }
       100% { opacity: 0.2; }
     }
+    /* --- 新增 chat-container 響應式寬度與置中樣式 --- */
+    /* Markdown 樣式表格 */
+    .markdown-table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 600px;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    .markdown-table th,
+    .markdown-table td {
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      text-align: center;
+    }
+    .markdown-table th {
+      background-color: #f97316;
+      color: white;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 960px;
+      margin-left: 0;
+      margin-right: 0;
+      transition: margin-left 0.3s ease;
+    }
+    .main-container.sidebar-open .chat-container {
+      margin-left: 120px; /* 只往右推，寬度不變 */
+    }
   </style>
 </head>
 <body>
@@ -360,13 +382,20 @@
     </div>
   </div>
 
-  <aside id="sidebar" class="sidebar" role="navigation" aria-label="Sidebar navigation">
-    <nav>
-      <a href="#" class="active" aria-current="page">Home</a>
-      <a href="#">Query History</a>
-      <a href="#">Settings</a>
-    </nav>
-  </aside>
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Sidebar navigation" style="display:flex; flex-direction:column;">
+
+      <section id="history-list-container">
+        <h3 style="font-weight:600; margin-bottom:0.5rem;">查詢紀錄</h3>
+        <ul id="history-list" style="list-style:none; padding-left:0; margin:0;">
+          <!-- 動態插入歷史紀錄 -->
+        </ul>
+      </section>
+
+      <div id="user-profile" style="padding: 12px 24px; border-top: 1px solid #e5e7eb; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f97316;"></div>
+        <div style="font-weight: 600; color: #374151;">User Name</div>
+      </div>
+    </aside>
 
   <main id="main-content" class="main-container" role="main">
     <!-- Top header -->
@@ -397,6 +426,7 @@
           </div>
         </div>
       </section>
+
     </div>
   </main>
 
@@ -413,9 +443,10 @@
       const hamburger = document.querySelector('.hamburger');
       const sidebar = document.getElementById('sidebar');
       const mainContent = document.getElementById('main-content');
+      const chatArea = document.getElementById('chat-interface');
 
       hamburger.addEventListener('click', (event) => {
-        event.stopPropagation();  // 阻止事件冒泡，避免觸發 document click 關閉側邊欄
+        event.stopPropagation();
         const isOpen = sidebar.classList.toggle('open');
         if (isOpen) {
           hamburger.setAttribute('aria-expanded', 'true');
@@ -433,6 +464,72 @@
           mainContent.classList.remove('sidebar-open');
         }
       });
+
+      // menuChat 相關事件已移除（因為已無 menuChat 元素）
+
+      // 模擬查詢紀錄資料
+      const histories = [
+        {
+          id: 1,
+          title: '2024年Nike運動種類分布',
+          messages: [
+            { role: 'user', text: '2024年Nike運動種類分布為何？' },
+            { role: 'assistant', text: 'MOCK_ANALYSIS_1' },
+          ]
+        },
+        {
+          id: 2,
+          title: 'Under Armour分析',
+          messages: [
+            { role: 'user', text: 'Under Armour 2022-2024商品分析' },
+            { role: 'assistant', text: 'MOCK_ANALYSIS_UA_TEXT' },
+            { role: 'assistant', text: 'MOCK_ANALYSIS_UA_CHART' },
+          ]
+        },
+        {
+          id: 3,
+          title: '紡織環保材料分析',
+          messages: [
+            { role: 'user', text: '紡織產業環保材料發展趨勢？' },
+            { role: 'assistant', text: '再生纖維與有機棉成為主要趨勢。' },
+          ]
+        }
+      ];
+
+      // 載入歷史紀錄列表
+      function loadHistoryList() {
+        const historyList = document.getElementById('history-list');
+        if (!historyList) return;
+        historyList.innerHTML = '';
+        histories.forEach(h => {
+          const li = document.createElement('li');
+          li.textContent = h.title;
+          li.style.cursor = 'pointer';
+          li.style.padding = '6px 8px';
+          li.style.borderRadius = '4px';
+          li.addEventListener('click', () => {
+            loadChatHistory(h.messages);
+            chatArea.style.display = 'flex';
+          });
+          li.addEventListener('mouseenter', () => li.style.backgroundColor = '#f97316');
+          li.addEventListener('mouseleave', () => li.style.backgroundColor = 'transparent');
+          historyList.appendChild(li);
+        });
+      }
+
+      // 載入指定歷史聊天訊息到聊天區
+      function loadChatHistory(messages) {
+        document.getElementById('recommendation-section').style.display = 'none';
+        document.getElementById('main-title')?.classList.add('hidden');
+        const container = document.getElementById('chat-history');
+        container.innerHTML = '';
+        messages.forEach(m => appendMessage(m.role, m.text));
+      }
+
+      // appendMessage 函式沿用現有定義
+
+      // 初始載入歷史紀錄
+      loadHistoryList();
     });
 
     let loadingBubble = null;
@@ -510,22 +607,31 @@
       } else if (role === 'assistant' || role === 'system') {
         bubble.className = 'self-start bg-gray-200 text-left rounded-lg px-4 py-2 max-w-[80%]';
 
+        // 其他原有文字和圖表判斷...
         switch(text) {
           case 'MOCK_ANALYSIS_1':
             {
-              const textBlock = document.createElement('div');
-              textBlock.innerText = '根據資料，2024 年 NIKE 的運動商品以 Lifestyle 類別為主，其次為 Training 與 Running。';
-              bubble.appendChild(textBlock);
-              container.appendChild(bubble);
-
-              const chartBubble = document.createElement('div');
-              chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
-              chartBubble.innerHTML = `
+              bubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
+              bubble.innerHTML = `
                 <div class="mb-2 font-semibold">分析：</div>
-                <div class="text-sm mb-2">2024 年 Nike 商品總數為 20,578 件。依照運動種類的商品數量佔比，Lifestyle（生活休閒）佔最大比例，為 31.74%（6,532 件），顯示品牌在休閒風格產品上投入較多。其次為 Baseball（棒球）佔 17.69%（3,641 件），以及其他類別的商品份額。Football/Soccer（足球）佔 14.67%（3,019 件），反映足球相關商品為重要開發重點。Training & Gym（訓練與健身）佔 9.18%（1,889 件），顯示品牌對於運動訓練產品亦有較高比重。籃球（Basketball）佔 6.51%（1,340 件），跑步（Running）佔 4.33%（892 件），分別為其他主要運動類別。其餘類別如高爾夫、登山、游泳等所佔比例較小，皆未超過 3%。整體來看，Nike 2024 年在休閒及球類運動類別的商品數量較為集中，反映品牌在這些運動領域的開發策略。</div>
-                <img src="/static/images/chart_sample.png" alt="示意圖" class="rounded border border-gray-300" />
+                <div class="text-sm mb-2">根據資料，2024 年 Nike 的運動商品以 Lifestyle 類別為主，其次為 Training 與 Running。</div>
+                <img src="/static/images/chart_sample.png" alt="示意圖" class="rounded border border-gray-300 mb-4" />
+                <div class="mb-2 font-semibold">圓餅圖資料表</div>
+                <table class="markdown-table">
+                  <thead>
+                    <tr><th>類別</th><th>數量</th><th>百分比</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Lifestyle</td><td>6532</td><td>31.74%</td></tr>
+                    <tr><td>Baseball</td><td>3641</td><td>17.69%</td></tr>
+                    <tr><td>Football</td><td>3019</td><td>14.67%</td></tr>
+                    <tr><td>Training</td><td>1889</td><td>9.18%</td></tr>
+                    <tr><td>Basketball</td><td>1340</td><td>6.51%</td></tr>
+                    <tr><td>Running</td><td>892</td><td>4.33%</td></tr>
+                  </tbody>
+                </table>
               `;
-              container.appendChild(chartBubble);
+              container.appendChild(bubble);
               break;
             }
           case 'MOCK_ANALYSIS_UA_TEXT':
@@ -625,34 +731,48 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    // 推薦問題卡片點擊事件
-    document.querySelectorAll('.question-card').forEach(card => {
-      card.addEventListener('click', async () => {
-        const userInput = card.textContent.trim();
-        appendMessage('user', userInput);
-        document.getElementById('recommendation-section').style.display = 'none';
-        document.getElementById('main-title')?.classList.add('hidden');
-        document.getElementById('sub-title')?.classList.add('hidden');
-        showTypingAnimation();
+    // 推薦問題卡片點擊事件重構，確保依需求觸發於 DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.question-card').forEach(card => {
+        let clicked = false;
+        card.addEventListener('click', async () => {
+          if (clicked) return;
+          clicked = true;
+          const userInput = card.textContent.trim();
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+          // 顯示使用者訊息
+          appendMessage('user', userInput);
 
-        if (userInput.includes('Nike')) {
-          appendMessage('assistant', 'MOCK_ANALYSIS_1');
-        } else if (userInput.includes('Under Armour')) {
-          appendMessage('assistant', 'MOCK_ANALYSIS_UA_TEXT');
-          appendMessage('assistant', 'MOCK_ANALYSIS_UA_CHART');
-        } else if (userInput.includes('Alo Yoga')) {
-          appendMessage('assistant', 'MOCK_ANALYSIS_ALO_TEXT');
-          appendMessage('assistant', 'MOCK_ANALYSIS_ALO_CHART');
-        } else if (userInput.includes('adidas')) {
-          appendMessage('assistant', 'MOCK_ANALYSIS_ADIDAS_TEXT');
-          appendMessage('assistant', 'MOCK_ANALYSIS_ADIDAS_CHART');
-        } else {
-          appendMessage('assistant', 'MOCK_ANALYSIS_DEFAULT');
-        }
+          // 隱藏推薦卡片及標題
+          document.getElementById('recommendation-section').style.display = 'none';
+          document.getElementById('main-title')?.classList.add('hidden');
+          document.getElementById('sub-title')?.classList.add('hidden');
 
-        hideTypingAnimation();
+          // 顯示 loading
+          showTypingAnimation();
+
+          // 等待1秒模擬回覆時間
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          // 根據輸入決定回覆內容
+          if (userInput.includes('Nike')) {
+            appendMessage('assistant', 'MOCK_ANALYSIS_1');
+          } else if (userInput.includes('Under Armour')) {
+            appendMessage('assistant', 'MOCK_ANALYSIS_UA_TEXT');
+            appendMessage('assistant', 'MOCK_ANALYSIS_UA_CHART');
+          } else if (userInput.includes('Alo Yoga')) {
+            appendMessage('assistant', 'MOCK_ANALYSIS_ALO_TEXT');
+            appendMessage('assistant', 'MOCK_ANALYSIS_ALO_CHART');
+          } else if (userInput.includes('adidas')) {
+            appendMessage('assistant', 'MOCK_ANALYSIS_ADIDAS_TEXT');
+            appendMessage('assistant', 'MOCK_ANALYSIS_ADIDAS_CHART');
+          } else {
+            appendMessage('assistant', 'MOCK_ANALYSIS_DEFAULT');
+          }
+
+          // 隱藏 loading
+          hideTypingAnimation();
+        }, { once: true });
       });
     });
   </script>
