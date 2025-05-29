@@ -409,28 +409,30 @@
   </div>
 
   <script>
-    const hamburger = document.querySelector('.hamburger');
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
+    document.addEventListener('DOMContentLoaded', () => {
+      const hamburger = document.querySelector('.hamburger');
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
 
-    hamburger.addEventListener('click', () => {
-      const isOpen = sidebar.classList.toggle('open');
-      if(isOpen) {
-        hamburger.setAttribute('aria-expanded', 'true');
-        mainContent.classList.add('sidebar-open');
-      } else {
-        hamburger.setAttribute('aria-expanded', 'false');
-        mainContent.classList.remove('sidebar-open');
-      }
-    });
+      hamburger.addEventListener('click', (event) => {
+        event.stopPropagation();  // 阻止事件冒泡，避免觸發 document click 關閉側邊欄
+        const isOpen = sidebar.classList.toggle('open');
+        if (isOpen) {
+          hamburger.setAttribute('aria-expanded', 'true');
+          mainContent.classList.add('sidebar-open');
+        } else {
+          hamburger.setAttribute('aria-expanded', 'false');
+          mainContent.classList.remove('sidebar-open');
+        }
+      });
 
-    // Close sidebar when clicking outside on small screens
-    document.addEventListener('click', (e) => {
-      if(!sidebar.contains(e.target) && !hamburger.contains(e.target) && sidebar.classList.contains('open')) {
-        sidebar.classList.remove('open');
-        hamburger.setAttribute('aria-expanded', 'false');
-        mainContent.classList.remove('sidebar-open');
-      }
+      document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && !hamburger.contains(e.target) && sidebar.classList.contains('open')) {
+          sidebar.classList.remove('open');
+          hamburger.setAttribute('aria-expanded', 'false');
+          mainContent.classList.remove('sidebar-open');
+        }
+      });
     });
 
     let loadingBubble = null;
