@@ -136,7 +136,7 @@
     .main-container {
       max-width: 1200px;
       width: 100%;
-      margin: 64px auto 0 auto; /* 上邊距64px，左右自動置中 */
+      margin: 32px auto 0 auto; /* 上邊距64px，左右自動置中 */
       transition: width 0.3s ease, margin-left 0.3s ease;
       box-sizing: border-box;
       display: flex;
@@ -186,6 +186,7 @@
       flex: 1;
       overflow-y: auto;
       padding-bottom: 60px; /* ✅ 預留底部空間避免被搜尋欄蓋住 */
+      margin-bottom: 16px;  /* ✅ 增加與 search bar 的距離 */
     }
     .search-container {
       position: absolute;
@@ -200,6 +201,11 @@
       padding-bottom: 12px;
       z-index: 10;
       margin: 0;
+    }
+
+    /* 其他樣式 */
+    .hidden {
+      display: none;
     }
     
     @media (max-width: 767px) {
@@ -360,12 +366,12 @@
       max-width: 960px;
       margin-left: 0;
       margin-right: 0;
-      transition: margin-left 0.3s ease;
+      transition: margin-left 0.3s ease, transform 0.3s ease;
       overflow: hidden; /* 禁止滾動條 */
       /* 其他高度交由父層控制 */
     }
     .main-container.sidebar-open .chat-container {
-      margin: 0 auto; /* ✅ 置中 */
+      margin: 0 auto; /* 中央對齊 */
     }
   </style>
 </head>
@@ -378,7 +384,7 @@
     </button>
     <div class="top-logo-inner">
       <a href="/" class="logo-text">
-        <img src="/static/images/smis-logo.png" alt="Tnet Logo" style="height: 32px;">
+        <img src="/static/images/smis-logo.png" alt="SMIS Logo" style="height: 32px;">
       </a>
     </div>
   </div>
@@ -407,7 +413,7 @@
     <div class="chat-container flex flex-col flex-1 min-h-0 w-full max-w-2xl mx-auto px-4"
          style="height: calc(100vh - 48px); position: relative;"> <!-- 48px 是 top-logo 高度 -->
       <!-- Center block -->
-      <section class="center-block" aria-labelledby="main-title">
+      <section class="center-block mb-4" aria-labelledby="main-title">
         <h1 id="main-title" class="main-title">SMIS LLM</h1>
       </section>
 
@@ -481,16 +487,17 @@
           title: 'Under Armour分析',
           messages: [
             { role: 'user', text: 'Under Armour 2022-2024商品分析' },
-            { role: 'assistant', text: 'MOCK_ANALYSIS_UA_TEXT' },
             { role: 'assistant', text: 'MOCK_ANALYSIS_UA_CHART' },
           ]
         },
         {
           id: 3,
-          title: '紡織環保材料分析',
+          title: 'SMIS LLM 功能',
           messages: [
-            { role: 'user', text: '紡織產業環保材料發展趨勢？' },
-            { role: 'assistant', text: '再生纖維與有機棉成為主要趨勢。' },
+            { role: 'user', text: 'SMIS LLM 的功能是什麼' },
+            { role: 'assistant', text: '說明 SMIS GPT 的功能' },
+            { role: 'user', text: '你說明啊' },
+            { role: 'assistant', text: 'SMIS GPT是一套產業數據分析助手，支援自然語言提問。使用者只需要輸入問題，例如「Nike這三年最熱門的品項是什麼？」等，系統會自動分析資料並產出圖表與統計摘要，幫助用戶快速理解相關產業動態與趨勢。' },
           ]
         }
       ];
@@ -523,6 +530,18 @@
         const container = document.getElementById('chat-history');
         container.innerHTML = '';
         messages.forEach(m => appendMessage(m.role, m.text));
+      }
+
+      function toggleTable(button) {
+        const tableWrapper = button.nextElementSibling;
+        const isHidden = tableWrapper.classList.contains('hidden');
+        if (isHidden) {
+          tableWrapper.classList.remove('hidden');
+          button.innerText = '➖ 收起詳細表格';
+        } else {
+          tableWrapper.classList.add('hidden');
+          button.innerText = '➕ 顯示詳細表格';
+        }
       }
 
       // appendMessage 函式沿用現有定義
@@ -610,11 +629,37 @@
         switch(text) {
           case 'MOCK_ANALYSIS_1':
             {
+              // 系統說明泡泡
+              const systemBubble = document.createElement('div');
+              systemBubble.className = 'self-start bg-gray-200 text-left rounded-lg px-4 py-2 max-w-[80%]';
+              systemBubble.innerText = `根據SMIS資料庫2024年的數據顯示，Nike在2024年度的運動商品種類主要集中於以下幾個方面，項目比例分析如下：
+
+1. 休閒與生活風格類產品 （Lifestyle）：佔比最高，達到約31.7%，共計6,532件，顯示Nike在生活休閒類產品的市場布局佔有重要位置。
+2. 體育專項運動：
+- 足球／足球（Football/Soccer）：佔比約14.7%，共計3,019件。
+- 跑步（Running）：佔比約4.3%，共計892件。
+- 訓練與健身（Training & Gym）：佔比約9.2%，共計1,889件。
+3. 其他運動類別如：
+- 橄欖球（Rugby）：約0.03%
+- 體操（Dance）：約0.8%
+- 游泳（Swim）：約1.2%
+- 高爾夫（Golf）：約2.8%
+- 滑板／Skateboarding：約0.7%
+- 滑雪與雪板（Ski & Snowboard）：約0.09%
+- 潛水（Diving）、釣魚（Fishing）、比賽用服（Combat/MMA）等比例較小，都在0.04%至0.2%之間。
+
+整體來看，Nike的產品種類在2024年中，Lifestyle及足球、訓練、跑步的產品最為豐富，占據大部分市場份額，顯示品牌在休閒生活與主流運動領域的重點布局。
+
+此外，資料庫中提及的相關行業動態，如非織造材料應用於運動服裝的創新，也可能促使Nike持續拓展在新型材料和多功能運動產品的研發，進一步豐富商品種類。
+
+若需要進一步細節分析或有其他運動類別的相關問題，請隨時告知。`;
+              container.appendChild(systemBubble);
+
               bubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
               bubble.innerHTML = `
                 <div class="mb-2 font-semibold">分析：</div>
-                <div class="text-sm mb-2">根據資料，2024 年 Nike 的運動商品以 Lifestyle 類別為主，其次為 Training 與 Running。</div>
-                <img src="/static/images/chart_sample.png" alt="示意圖" class="rounded border border-gray-300 mb-4" />
+                <div class="text-sm mb-2">2024 年 Nike 共上架 20,578 件商品。根據商品分布資料，運動類別中佔比最高的是生活休閒（Lifestyle），商品數量達 6,532 件，占總數的 31.74%。其次為棒球（Baseball），商品數量為 3,641 件，占 17.69%，以及其他類別（Other），商品數量為 3,265 件，占 15.87%。足球（Football/Soccer）商品數量為 3,019 件，占 14.67%。訓練與健身（Training & Gym）商品為 1,889 件，占 9.18%。籃球（Basketball）及跑步（Running）分別為 1,340 件（6.51%）與 892 件（4.33%）。除上述主要運動外，其他類別如高爾夫（Golf）、徒步（Hiking & Trail）、排球（Volleyball）等商品比例較低，皆未超過 1.5%。總體來看，Nike 在 2024 年的商品開發策略集中於休閒與球類運動，特別是生活休閒、棒球與足球類別，反映品牌在這些運動市場的布局重點。</div>
+                <img src="/static/images/nike_chart_sample.png" alt="示意圖" class="rounded border border-gray-300 mb-4" />
                 <div class="mb-2 font-semibold">圓餅圖資料表</div>
                 <table class="markdown-table">
                   <thead>
@@ -631,67 +676,151 @@
                 </table>
               `;
               container.appendChild(bubble);
-              break;
-            }
-          case 'MOCK_ANALYSIS_UA_TEXT':
-            {
-              const textBlock = document.createElement('div');
-              textBlock.innerText = 'Under Armour 於 2022～2024 年推出的商品中，訓練與健身類別佔比最高，反映品牌重點在運動功能性產品。';
-              bubble.appendChild(textBlock);
-              container.appendChild(bubble);
+              // 插入按鈕列
+              insertButtonRow(container, bubble, systemBubble);
               break;
             }
           case 'MOCK_ANALYSIS_UA_CHART':
             {
+              // 系統說明泡泡
+              const systemBubble = document.createElement('div');
+              systemBubble.className = 'self-start bg-gray-200 text-left rounded-lg px-4 py-2 max-w-[80%]';
+              systemBubble.innerText = `根據SMIS資料庫所提供的2022年至2024年間Under Armour的商品類別數量分布數據，可以進行以下分析：
+
+一、2022年：
+- 最主要的商品類別為「訓練與健身（Training & Gym）」類別，共計620件，占比約28.17%，遠高於其他類別。
+- 其次為「跑步（Running）」類別，共計560件，占比約25.44%。
+- 「籃球（Basketball）」和「拳擊（Boxing）」類別數量均在12件與206件左右，但在整體比重上不及訓練與跑步。
+
+二、2023年：
+- 「訓練與健身」的商品數量持續攀升至576件，比例約為32.52%，同樣是最大類別。
+- 「跑步」類別也維持在高位，約383件，占比約21.63%。
+- 其他類別如「籃球」和「拳擊」亦呈增長趨勢。
+
+三、2024年：
+- 「訓練與健身」的商品件數進一步增至1174件，約佔比50.61%，明顯為最大商品類別。
+- 「跑步」類別亦顯著增加至241件，占比約10.39%，但顯著低於訓練與健身類別。
+- 其他類別，如「籃球」和「拳擊」的商品數量較少，整體上在多元化分類中，訓練與健身持續成為重點。
+
+【結論】：
+從數據可以明確看出，Under Armour在2022至2024年間，商品類別中「訓練與健身」類別的比例逐年增加，且在2024年已經超過一半的商品數量，成為最具代表性的商品類別。這表明Under Armour的產品策略顯著偏向於訓練與健身類別，並可判斷其主要市場重心確實集中在此範疇。
+
+至於運動類別的細分方面，尤其是2024年，訓練與健身類別已是最大類別，顯示其重點在於提供專為訓練和健身所設計的產品，有助於支援相關運動領域的需求。
+
+【WTiN相關精選摘錄】：
+"Smart sportswear are garments modified with electronic components to sense and monitor different parameters and provide valuable insights about the wearer... This information can be used to improve performance and reduce the risk of critical injuries."
+此段內容強調智慧運動服裝的應用範疇與訓練健身密切相關，佐證Under Armour專注於運動性能提升的策略。
+
+原因說明：此摘錄凸顯了智慧運動服裝在提升運動表現和安全上的作用，呼應Under Armour在訓練和健身商品的重點布局，從而補充分析的背景理由。`;
+              container.appendChild(systemBubble);
+
               const chartBubble = document.createElement('div');
               chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
               chartBubble.innerHTML = `
                 <div class="mb-2 font-semibold">分析：</div>
-                <div class="text-sm mb-2">以下圖表展示 Under Armour 各類別商品數量佔比，訓練與健身類別明顯佔多數。</div>
-                <img src="/static/images/chart_sample.png" alt="Under Armour 商品數量分析" class="rounded border border-gray-300" />
+                <div class="text-sm mb-2">2024 年共上架 2,320 件商品。訓練與健身（Training & Gym）類別開發件數達 1,174 件，佔比 50.6%，為各類別中件數最多的項目，顯示品牌在此類別的產品策略上投入較高。跑步（Running）類別則有 241 件，占比 10.4%。其他主要類別包括高爾夫（Golf）186 件（8.0%）、釣魚（Fishing）93 件（4.0%）和籃球（Basketball）61 件（2.6%）。訓練與健身類別的件數在三年期間持續為最高，明確展現品牌在商品開發重點上的策略方向。</div>
+                <img src="/static/images/ua_chart_sample.png" alt="Under Armour 2022-2024 年各運動類別銷售數量趨勢" class="rounded border border-gray-300" />
               `;
               container.appendChild(chartBubble);
-              break;
-            }
-          case 'MOCK_ANALYSIS_ALO_TEXT':
-            {
-              const textBlock = document.createElement('div');
-              textBlock.innerText = 'Alo Yoga 於 2022～2024 年持續擴大瑜珈類產品開發，商品數量逐年增加，顯示品牌聚焦瑜珈市場。';
-              bubble.appendChild(textBlock);
-              container.appendChild(bubble);
+              insertButtonRow(container, chartBubble);
               break;
             }
           case 'MOCK_ANALYSIS_ALO_CHART':
             {
+              // 系統說明泡泡
+              const systemBubble = document.createElement('div');
+              systemBubble.className = 'self-start bg-gray-200 text-left rounded-lg px-4 py-2 max-w-[80%]';
+              systemBubble.innerText = `根據SMIS數據顯示，Alo Yoga從2022年至2024年間，瑜珈類產品的商品數量整體呈現出持續擴大的趨勢。
+
+具體分析如下：
+- 2022年初，Alo Yoga在2022年1月的瑜珈產品數量為292件，佔其總商品的約35.87%。該年度整體商品數量波動但呈現出增加的趨勢，尤其在2022年6月達到高點78件（約38.23%比例）。
+- 進入2023年，商品數量持續波動，2023年7月再次出現高峰（66件，占比約38.15%），但整體呈現逐漸下降的趨勢，尤其在2023年末至2024年初，商品數量有所下降。
+- 2024年起，商品數量再次出現增長的跡象，尤其在2024年9月達到高點100件（約25.51%），顯示Alo Yoga在2024年下半年，瑜珈產品數量有明顯的提升。
+
+由此可見，儘管存在季節性波動，Alo Yoga的瑜珈產品數量在過去三年中呈現出較為明顯的擴大趨勢，尤其是在2024年前後的反彈，明確顯示公司持續擴大其瑜珈類商品線。
+
+此外，根據近期的行業趨勢，品牌持續推動產品多樣化與新材料的應用，以符合市場對於專業、環保與創新產品的需求，這也是Alo Yoga持續擴展的動力之一。
+
+相信此分析能幫助瞭解Alo Yoga在瑜珈產品線的發展狀況與未來成長潛力。
+
+若需更詳盡的行業發展與創新資訊，WTiN的相關文章也提到，品牌正積極結合新材料與可持續技術，推動產品革新，這在瑜珈品牌中亦是重要的趨勢之一。
+
+此訊息之選擇，是因為它可以補充我們對市場趨勢的理解，並與Alo Yoga的擴張策略相呼應。`;
+              container.appendChild(systemBubble);
+
               const chartBubble1 = document.createElement('div');
               chartBubble1.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
               chartBubble1.innerHTML = `
                 <div class="mb-2 font-semibold">分析：</div>
-                <div class="text-sm mb-2">圖示反映 Alo Yoga 2022 至 2024 年間瑜珈類商品數量持續成長。</div>
-                <img src="/static/images/chart_sample.png" alt="Alo Yoga 趨勢圖" class="rounded border border-gray-300" />
+                <div class="text-sm mb-2">2022 年至 2024 年期間，Alo Yoga 瑜珈類產品的商品數量經歷波動。2022 年初商品數量較高，1 月達到 292 件，占該月總商品數 814 件的 35.9%。此後數量呈現下降趨勢，至 2022 年 4 月降至 7 件，但在 2022 年 5 月開始逐步回升，6 月達到 78 件。2022 年 11 月商品數量達到最大值 106 件（當月總數 321 件，占比 33.0%），顯示該月品牌在瑜珈產品上有較多上架。
+
+2023 年起，商品數量起伏較為明顯，其中 2023 年 7 月商品數量為 66 件，為同期較高值。2024 年商品數量再度顯著增加，9 月達到 100 件，占該月總數 392 件的 25.5%。整體來看，商品數量在 2022 年初較高，之後經歷短暫下降，但在 2023 年後逐步回升並於 2024 年達到較高水準，呈現逐步擴大的趨勢。</div>
+                <img src="/static/images/alo_chart_sample.png" alt="Alo Yoga 趨勢圖" class="rounded border border-gray-300" />
               `;
               container.appendChild(chartBubble1);
+              insertButtonRow(container, chartBubble1);
 
+              // --- 新實作：建立 chartBubble2 ---
               const chartBubble2 = document.createElement('div');
               chartBubble2.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
-              chartBubble2.innerHTML = `
-                <div class="mb-2 font-semibold">附加分析：</div>
-                <div class="text-sm mb-2">另一張示意圖顯示瑜珈產品細分類別的比例分佈。</div>
-                <img src="/static/images/chart_sample.png" alt="Alo Yoga 細分類別" class="rounded border border-gray-300" />
+
+              // 建立分析段落
+              const analysisText = document.createElement('div');
+              analysisText.className = 'text-sm mb-2';
+              analysisText.innerText = '2024 年共上架 214 件 Alo Yoga 瑜珈類產品。男性款（men）佔 54 件，比例 25.23%；女性款（women）佔 160 件，比例 74.77%。女性產品在整體中佔較大比例，反映品牌在產品開發上較偏重女性市場。';
+
+              // 建立圖片
+              const img = document.createElement('img');
+              img.src = '/static/images/alo2_chart_sample.png';
+              img.alt = 'Alo Yoga 細分類別';
+              img.className = 'rounded border border-gray-300 mb-2';
+
+              // 建立按鈕
+              const toggleButton = document.createElement('button');
+              toggleButton.className = 'text-blue-600 text-sm underline hover:text-blue-800 mb-2';
+              toggleButton.innerText = '顯示詳細表格';
+
+              // 建立表格容器
+              const tableWrapper = document.createElement('div');
+              tableWrapper.className = 'hidden';
+
+              tableWrapper.innerHTML = `
+                <div class="mb-2 font-semibold">2024 Alo Yoga 瑜珈產品性別分布</div>
+                <table class="markdown-table">
+                  <thead>
+                    <tr><th>性別</th><th>數量</th><th>百分比</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Men</td><td>54</td><td>25.23%</td></tr>
+                    <tr><td>Women</td><td>160</td><td>74.77%</td></tr>
+                  </tbody>
+                </table>
               `;
+
+              // 點擊事件切換 hidden 類
+              toggleButton.addEventListener('click', () => {
+                tableWrapper.classList.toggle('hidden');
+                toggleButton.innerText = tableWrapper.classList.contains('hidden') ? '顯示詳細表格' : '隱藏詳細表格';
+              });
+
+              // 插入所有內容
+              chartBubble2.innerHTML = `<div class="mb-2 font-semibold">分析：</div>`;
+              chartBubble2.appendChild(analysisText);
+              chartBubble2.appendChild(img);
+              chartBubble2.appendChild(toggleButton);
+              chartBubble2.appendChild(tableWrapper);
               container.appendChild(chartBubble2);
-              break;
-            }
-          case 'MOCK_ANALYSIS_ADIDAS_TEXT':
-            {
-              const textBlock = document.createElement('div');
-              textBlock.innerText = 'adidas 2023 年商品以足球與跑步類別為主，顯示品牌聚焦這兩個運動市場。';
-              bubble.appendChild(textBlock);
-              container.appendChild(bubble);
+              insertButtonRow(container, chartBubble2);
               break;
             }
           case 'MOCK_ANALYSIS_ADIDAS_CHART':
             {
+              // 系統說明泡泡
+              const systemBubble = document.createElement('div');
+              systemBubble.className = 'self-start bg-gray-200 text-left rounded-lg px-4 py-2 max-w-[80%]';
+              systemBubble.innerText = '以下是根據您的問題所產生的分析結果：';
+              container.appendChild(systemBubble);
+
               const chartBubble = document.createElement('div');
               chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
               chartBubble.innerHTML = `
@@ -700,14 +829,22 @@
                 <img src="/static/images/chart_sample.png" alt="adidas 商品數量分佈" class="rounded border border-gray-300" />
                 `;
               container.appendChild(chartBubble);
+              insertButtonRow(container, chartBubble);
               break;
             }
           case 'MOCK_ANALYSIS_DEFAULT':
             {
+              // 系統說明泡泡
+              const systemBubble = document.createElement('div');
+              systemBubble.className = 'self-start bg-gray-200 text-left rounded-lg px-4 py-2 max-w-[80%]';
+              systemBubble.innerText = '以下是根據您的問題所產生的分析結果：';
+              container.appendChild(systemBubble);
+
               const textBlock = document.createElement('div');
               textBlock.innerText = '這是範例的回覆，說明系統目前沒有找到符合的資料，以下為示意圖表。';
               bubble.appendChild(textBlock);
               container.appendChild(bubble);
+              insertButtonRow(container, bubble);
 
               const chartBubble = document.createElement('div');
               chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
@@ -717,17 +854,77 @@
                 <img src="/static/images/chart_sample.png" alt="範例圖表" class="rounded border border-gray-300" />
               `;
               container.appendChild(chartBubble);
+              insertButtonRow(container, chartBubble);
               break;
             }
           default:
             {
               bubble.innerText = text;
               container.appendChild(bubble);
+              insertButtonRow(container, bubble);
               break;
             }
         }
       }
       container.scrollTop = container.scrollHeight;
+    }
+
+    // 插入 assistant/system 回覆的按鈕列
+    // 新增 systemBubble 參數（可為 undefined）
+    function insertButtonRow(container, chartBubble2, systemBubble) {
+      // 判斷是否僅存在 systemBubble 而不存在任何 chartBubble
+      const messageWrapper = systemBubble ? systemBubble.parentElement : null;
+      const hasOnlySystemBubble = systemBubble && messageWrapper && !messageWrapper.querySelector('.chart-bubble') && !messageWrapper.querySelector('.bg-gray-50');
+
+      // 建立按鈕
+      const copyButton = document.createElement('button');
+      copyButton.innerText = '複製';
+      copyButton.className = 'text-sm px-2 py-1 rounded hover:bg-gray-200';
+      if (systemBubble) {
+        copyButton.addEventListener('click', () => {
+          navigator.clipboard.writeText(systemBubble.innerText);
+        });
+      } else if (chartBubble2) {
+        copyButton.addEventListener('click', () => {
+          navigator.clipboard.writeText(chartBubble2.innerText || chartBubble2.textContent);
+        });
+      }
+
+      const noteButton = document.createElement('button');
+      noteButton.innerText = '儲存筆記';
+      noteButton.className = 'text-sm px-2 py-1 rounded hover:bg-gray-200';
+
+      const buttonWrapper = document.createElement('div');
+      buttonWrapper.className = 'flex gap-2 mt-2';
+      buttonWrapper.appendChild(copyButton);
+      buttonWrapper.appendChild(noteButton);
+
+      // 若只有 systemBubble 且沒有任何 chart-bubble
+      if (hasOnlySystemBubble) {
+        // 僅複製+筆記
+        messageWrapper && messageWrapper.appendChild(buttonWrapper);
+        return;
+      }
+
+      // 若有 systemBubble 但也有 chart-bubble，則多一個下載按鈕
+      if (systemBubble) {
+        const downloadButton = document.createElement('button');
+        downloadButton.innerText = '下載圖片';
+        downloadButton.className = 'text-sm px-2 py-1 rounded hover:bg-gray-200';
+        buttonWrapper.appendChild(downloadButton);
+        messageWrapper && messageWrapper.appendChild(buttonWrapper);
+        return;
+      }
+
+      // 若沒有 systemBubble，僅針對 chartBubble2
+      if (chartBubble2) {
+        const downloadButton = document.createElement('button');
+        downloadButton.innerText = '下載圖片';
+        downloadButton.className = 'text-sm px-2 py-1 rounded hover:bg-gray-200';
+        buttonWrapper.appendChild(downloadButton);
+        chartBubble2.parentElement && chartBubble2.parentElement.appendChild(buttonWrapper);
+        return;
+      }
     }
 
     // 推薦問題卡片點擊事件重構，確保依需求觸發於 DOMContentLoaded
@@ -757,13 +954,10 @@
           if (userInput.includes('Nike')) {
             appendMessage('assistant', 'MOCK_ANALYSIS_1');
           } else if (userInput.includes('Under Armour')) {
-            appendMessage('assistant', 'MOCK_ANALYSIS_UA_TEXT');
             appendMessage('assistant', 'MOCK_ANALYSIS_UA_CHART');
           } else if (userInput.includes('Alo Yoga')) {
-            appendMessage('assistant', 'MOCK_ANALYSIS_ALO_TEXT');
             appendMessage('assistant', 'MOCK_ANALYSIS_ALO_CHART');
           } else if (userInput.includes('adidas')) {
-            appendMessage('assistant', 'MOCK_ANALYSIS_ADIDAS_TEXT');
             appendMessage('assistant', 'MOCK_ANALYSIS_ADIDAS_CHART');
           } else {
             appendMessage('assistant', 'MOCK_ANALYSIS_DEFAULT');
