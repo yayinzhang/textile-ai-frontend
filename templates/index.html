@@ -9,32 +9,31 @@
   <meta name="google-site-verification" content="X5v9TojsnrGEhmzB4bQDfjDVm_2ACl6F8Xk9LdAqJng" />
 
   <!-- 建議加上網頁描述 -->
-  <meta name="description" content="專為華語使用者設計的泰文學習平台，提供單字解析、例句與文法說明。">
+
+  <meta name="description" content="SMIS LLM - 專為紡織業者設計的AI平台，提供即時查詢與分析，幫助您快速獲取市場資訊。">
 
   <!-- Facebook、LINE、社群分享時用的資訊 -->
-  <meta property="og:title" content="泰文學習平台 - 學泰文就上這裡">
-  <meta property="og:description" content="文章翻譯、單字庫、文法庫一站搞定。">
+  <meta property="og:title" content="SMIS LLM - 專為紡織業者設計的AI平台">
+
+  <meta property="og:description" content="SMIS LLM 提供紡織業者即時查詢與分析，幫助您快速獲取市場資訊。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://thai-learning-platform.onrender.com/">
   <meta property="og:image" content="https://thai-learning-platform.onrender.com/static/og-image.png"> <!-- 若有 LOGO 圖可放這 -->
 
   <!-- Twitter 卡片資訊（選用） -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="泰文學習平台 - 學泰文就上這裡">
-  <meta name="twitter:description" content="學單字、例句、文法一次搞定，適合初學者與進階學習者。">
-
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-QJB4DL5LQQ"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
+  <meta name="twitter:title" content="SMIS LLM - 專為紡織業者設計的AI平台">
+  <meta name="twitter:description" content="SMIS LLM 提供紡織業者即時查詢與分析，幫助您快速獲取市場資訊。">
     gtag('config', 'G-QJB4DL5LQQ');
   </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden; /* 禁止滾動條 */
+    }
     :root {
       --top-area-height: 6rem; /* 根據實際 top 區域高度調整 */
       --bottom-bar-height: 5rem; /* 根據實際 search bar 高度調整 */
@@ -142,13 +141,14 @@
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 32px;
       align-items: center;
+      height: calc(100vh - 48px - 32px); /* 100vh 扣掉 top-logo 高度 */
+      overflow: hidden; /* ✅ 不讓整頁捲動 */
+      position: relative; /* ✅ 讓子層 absolute 以此為基準 */
     }
     .main-container.sidebar-open {
-      width: calc(100% - 240px); /* 扣除側邊欄寬度 */
-      margin-left: auto;
-      margin-right: auto;
+      width: calc(100% - 240px); /* ✅ 寬度實際減少 */
+      margin-left: 240px; /* ✅ 並向右推 sidebar 寬度 */
     }
     /* Remove top-header flex justify-content */
     .top-header {
@@ -182,19 +182,26 @@
       color: #6b7280;
       user-select: none;
     }
+    .chat-interface {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 60px; /* ✅ 預留底部空間避免被搜尋欄蓋住 */
+    }
     .search-container {
-      display: flex;
-      width: 100%;
-      max-width: 640px;
-      gap: 8px;
-      position: fixed;
+      position: absolute;
       bottom: 12px;
       left: 0;
       right: 0;
-      margin: 0 auto;
-      padding: 0 16px;
-      z-index: 1300;
+      width: 100%;
+      max-width: 100%;
+      padding-left: calc((100% - 960px) / 2);
+      padding-right: calc((100% - 960px) / 2);
+      padding-top: 12px;
+      padding-bottom: 12px;
+      z-index: 10;
+      margin: 0;
     }
+    
     @media (max-width: 767px) {
       .search-container {
         /* 手機版維持現有設定 */
@@ -205,7 +212,7 @@
         margin: 0 auto;
         padding: 0 16px;
         max-width: 600px;
-        z-index: 1300;
+        z-index: 10;
       }
     }
     .search-input {
@@ -282,18 +289,6 @@
         min-width: 250px;
       }
     }
-    /* Responsive: show hamburger on small screens and hide sidebar by default */
-    @media (min-width: 768px) {
-      .sidebar {
-        /* Removed transform override */
-      }
-      .hamburger {
-        /* Always visible, no change */
-      }
-      .main-container {
-        /* Removed margin-left override */
-      }
-    }
 
     #history-list-container {
       flex-grow: 1;
@@ -359,14 +354,18 @@
       color: white;
     }
     .chat-container {
+      position: relative;
       width: 100%;
+      height: calc(100vh - 48px - 80px); /* 扣掉 top-logo 高度 */
       max-width: 960px;
       margin-left: 0;
       margin-right: 0;
       transition: margin-left 0.3s ease;
+      overflow: hidden; /* 禁止滾動條 */
+      /* 其他高度交由父層控制 */
     }
     .main-container.sidebar-open .chat-container {
-      margin-left: 120px; /* 只往右推，寬度不變 */
+      margin: 0 auto; /* ✅ 置中 */
     }
   </style>
 </head>
@@ -403,7 +402,8 @@
     </header>
 
     <!-- 新增 chat-container 外層，包住聊天區與搜尋欄 -->
-    <div class="chat-container flex flex-col h-[calc(100vh-160px)] w-full max-w-2xl mx-auto mt-8 px-4">
+    <div class="chat-container flex flex-col flex-1 min-h-0 w-full max-w-2xl mx-auto px-4"
+         style="height: calc(100vh - 48px); position: relative;"> <!-- 48px 是 top-logo 高度 -->
       <!-- Center block -->
       <section class="center-block" aria-labelledby="main-title">
         <h1 id="main-title" class="main-title">SMIS LLM</h1>
@@ -419,24 +419,21 @@
       </div>
 
       <!-- Chat Interface -->
-      <section id="chat-interface" class="flex flex-col gap-4 flex-1">
-        <div class="flex-1 overflow-y-auto">  
-          <div id="chat-history" class="flex flex-col overflow-y-auto px-4 py-4 space-y-4 min-h-[200px] max-h-[calc(100vh-160px)]"></div>
-            <!-- 聊天訊息會插入這裡 -->
-          </div>
-        </div>
+      <section id="chat-interface" class="flex flex-col flex-1 overflow-y-auto gap-4 pb-[60px]">
+        <div id="chat-history" class="flex flex-col overflow-y-auto px-4 py-4 space-y-4 min-h-[200px]"></div>
+        <!-- 聊天訊息會插入這裡 -->
       </section>
-
+      
+      <!-- 內嵌搜尋欄（非固定） -->
+      <div id="search-container" class="search-container">
+        <form id="chat-form" class="w-full flex gap-2" onsubmit="handleChatSubmit(event);">
+          <input type="text" id="chat-input" placeholder="輸入你的問題..." class="flex-1 border border-gray-300 rounded-l px-4 py-2 focus:outline-none" required />
+          <button type="submit" class="bg-orange-400 hover:bg-orange-500 text-white px-4 py-2 rounded-r">送出</button>
+        </form>
+      </div>
     </div>
-  </main>
+  </main> 
 
-  <!-- 固定底部搜尋欄 -->
-  <div id="search-container" class="fixed bottom-0 left-0 right-0 py-4 shadow-md z-50">
-    <form id="chat-form" class="max-w-2xl mx-auto w-full px-4 flex" onsubmit="handleChatSubmit(event);">
-      <input type="text" id="chat-input" placeholder="輸入你的問題..." class="flex-1 border border-gray-300 rounded-l px-4 py-2 focus:outline-none" required />
-      <button type="submit" class="bg-orange-400 hover:bg-orange-500 text-white px-4 py-2 rounded-r">送出</button>
-    </form>
-  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
