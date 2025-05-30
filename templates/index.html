@@ -840,12 +840,6 @@
               systemBubble.innerText = '以下是根據您的問題所產生的分析結果：';
               container.appendChild(systemBubble);
 
-              const textBlock = document.createElement('div');
-              textBlock.innerText = '這是範例的回覆，說明系統目前沒有找到符合的資料，以下為示意圖表。';
-              bubble.appendChild(textBlock);
-              container.appendChild(bubble);
-              insertButtonRow(container, bubble);
-
               const chartBubble = document.createElement('div');
               chartBubble.className = 'self-start bg-gray-50 text-left rounded-lg px-4 py-2 max-w-[80%] mt-2';
               chartBubble.innerHTML = `
