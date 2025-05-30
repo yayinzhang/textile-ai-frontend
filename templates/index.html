@@ -136,13 +136,13 @@
     .main-container {
       max-width: 1200px;
       width: 100%;
-      margin: 32px auto 0 auto; /* 上邊距64px，左右自動置中 */
+      margin: 32px auto 0 auto; /* 上邊距32px，左右自動置中 */
       transition: width 0.3s ease, margin-left 0.3s ease;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
-      height: calc(100vh - 48px - 32px); /* 100vh 扣掉 top-logo 高度 */
+      height: calc(100vh - 48px); /* 100vh 扣掉 top-logo 高度 */
       overflow: hidden; /* ✅ 不讓整頁捲動 */
       position: relative; /* ✅ 讓子層 absolute 以此為基準 */
     }
@@ -312,7 +312,7 @@
       .main-container {
         margin-left: 0;
         width: 100%;
-        margin-top: 48px;
+        margin-top: 32px;
       }
       .recommended-questions {
         padding-left: 16px;
