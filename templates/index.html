@@ -203,6 +203,30 @@
       margin: 0;
     }
 
+    .zoomable-img {
+      cursor: zoom-in;
+      transition: transform 0.3s ease;
+    }
+
+    .zoom-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .zoom-overlay img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+    }
+
     /* 其他樣式 */
     .hidden {
       display: none;
@@ -516,6 +540,12 @@
           li.addEventListener('click', () => {
             loadChatHistory(h.messages);
             chatArea.style.display = 'flex';
+            // 新增：手機寬度時收起側邊欄
+            if (window.innerWidth <= 767) {
+              sidebar.classList.remove('open');
+              hamburger.setAttribute('aria-expanded', 'false');
+              mainContent.classList.remove('sidebar-open');
+            }
           });
           li.addEventListener('mouseenter', () => li.style.backgroundColor = '#f97316');
           li.addEventListener('mouseleave', () => li.style.backgroundColor = 'transparent');
@@ -676,6 +706,9 @@
                 </table>
               `;
               container.appendChild(bubble);
+              // 綁定圖片放大
+              const img = bubble.querySelector('img');
+              if (img) enableZoom(img);
               // 插入按鈕列
               insertButtonRow(container, bubble, systemBubble);
               break;
@@ -722,6 +755,9 @@
                 <img src="/static/images/ua_chart_sample.png" alt="Under Armour 2022-2024 年各運動類別銷售數量趨勢" class="rounded border border-gray-300" />
               `;
               container.appendChild(chartBubble);
+              // 綁定圖片放大
+              const img = chartBubble.querySelector('img');
+              if (img) enableZoom(img);
               insertButtonRow(container, chartBubble);
               break;
             }
@@ -758,6 +794,9 @@
                 <img src="/static/images/alo_chart_sample.png" alt="Alo Yoga 趨勢圖" class="rounded border border-gray-300" />
               `;
               container.appendChild(chartBubble1);
+              // 綁定圖片放大
+              const img1 = chartBubble1.querySelector('img');
+              if (img1) enableZoom(img1);
               insertButtonRow(container, chartBubble1);
 
               // --- 新實作：建立 chartBubble2 ---
@@ -770,10 +809,11 @@
               analysisText.innerText = '2024 年共上架 214 件 Alo Yoga 瑜珈類產品。男性款（men）佔 54 件，比例 25.23%；女性款（women）佔 160 件，比例 74.77%。女性產品在整體中佔較大比例，反映品牌在產品開發上較偏重女性市場。';
 
               // 建立圖片
-              const img = document.createElement('img');
-              img.src = '/static/images/alo2_chart_sample.png';
-              img.alt = 'Alo Yoga 細分類別';
-              img.className = 'rounded border border-gray-300 mb-2';
+              const img2 = document.createElement('img');
+              img2.src = '/static/images/alo2_chart_sample.png';
+              img2.alt = 'Alo Yoga 細分類別';
+              img2.className = 'rounded border border-gray-300 mb-2';
+              enableZoom(img2);       // 👈 這行是關鍵
 
               // 建立按鈕
               const toggleButton = document.createElement('button');
@@ -806,7 +846,7 @@
               // 插入所有內容
               chartBubble2.innerHTML = `<div class="mb-2 font-semibold">分析：</div>`;
               chartBubble2.appendChild(analysisText);
-              chartBubble2.appendChild(img);
+              chartBubble2.appendChild(img2);
               chartBubble2.appendChild(toggleButton);
               chartBubble2.appendChild(tableWrapper);
               container.appendChild(chartBubble2);
@@ -829,6 +869,9 @@
                 <img src="/static/images/chart_sample.png" alt="adidas 商品數量分佈" class="rounded border border-gray-300" />
                 `;
               container.appendChild(chartBubble);
+              // 綁定圖片放大
+              const img = chartBubble.querySelector('img');
+              if (img) enableZoom(img);
               insertButtonRow(container, chartBubble);
               break;
             }
@@ -848,6 +891,9 @@
                 <img src="/static/images/chart_sample.png" alt="範例圖表" class="rounded border border-gray-300" />
               `;
               container.appendChild(chartBubble);
+              // 綁定圖片放大
+              const img = chartBubble.querySelector('img');
+              if (img) enableZoom(img);
               insertButtonRow(container, chartBubble);
               break;
             }
@@ -920,6 +966,20 @@
         return;
       }
     }
+
+  function enableZoom(img) {
+    img.classList.add('zoomable-img');
+    img.addEventListener('click', () => {
+      if (window.innerWidth > 767) return; // 僅手機版
+      const overlay = document.createElement('div');
+      overlay.className = 'zoom-overlay';
+      const zoomedImg = document.createElement('img');
+      zoomedImg.src = img.src;
+      overlay.appendChild(zoomedImg);
+      overlay.addEventListener('click', () => overlay.remove());
+      document.body.appendChild(overlay);
+    });
+  }
 
     // 推薦問題卡片點擊事件重構，確保依需求觸發於 DOMContentLoaded
     document.addEventListener('DOMContentLoaded', () => {
