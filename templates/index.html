@@ -970,7 +970,6 @@
   function enableZoom(img) {
     img.classList.add('zoomable-img');
     img.addEventListener('click', () => {
-      if (window.innerWidth > 767) return; // 僅手機版
       const overlay = document.createElement('div');
       overlay.className = 'zoom-overlay';
       const zoomedImg = document.createElement('img');
